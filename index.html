@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>カード画像合成ツール（完全ドラッグ対応）</title>
+  <title>Magic: the Gathering 英雄トークン作成ツール</title>
   <style>
     body {
       font-family: 'Georgia', serif;
@@ -34,13 +34,22 @@
   </style>
 </head>
 <body>
-  <h1>63×88mm（300dpi）カード画像にフレーム合成</h1>
+  <h1>Magic: the Gathering　英雄トークン作成ツール</h1>
+  <p>Custom Hero Token Creator for Magic: the Gathering</p>
+  <p style="color:#555;font-size:14px;">
+    ※ この画像は63×88mm（300dpi）で印刷してください<br>
+    * Please print at 63×88mm size (300dpi)
+  </p>
+  <p style="color:#333;font-size:14px;">
+    🖱️ マウスホイールや🤏ピンチ操作で画像を拡大縮小できます。画像をドラッグして位置も調整できます。<br>
+    🖱️ Use the mouse wheel or 🤏 pinch gesture to zoom in/out. Drag to reposition the image.
+  </p>
 
   <div class="controls">
-    <label for="frameSelect">フレームを選択：</label>
+    <label for="frameSelect">フレームを選択 / Select Frame:</label>
     <select id="frameSelect">
-      <option value="frame_jp.png">日本語フレーム</option>
-      <option value="frame_en.png">ENGLISHフレーム</option>
+      <option value="frame_jp.png">日本語</option>
+      <option value="frame_en.png">ENGLISH</option>
     </select>
 
     <input type="file" id="upload" accept="image/*">
@@ -49,8 +58,15 @@
   <canvas id="canvas" width="744" height="1039"></canvas>
 
   <div>
-    <a id="download" href="#" download="card_300dpi.png">画像をダウンロード</a>
+    <a id="download" href="#" download="card_300dpi.png">Download!</a>
   </div>
+
+  <footer style="margin-top: 40px; font-size: 12px; color: #666;">
+    © SQUARE ENIX<br>
+    このトークン作成ツールはファンコンテンツ・ポリシーに沿った非公式のファンコンテンツです。ウィザーズ社の認可/許諾は得ていません。<br>
+    題材の一部に、ウィザーズ・オブ・ザ・コースト社の財産を含んでいます。<br>
+    © Wizards of the Coast LLC.
+  </footer>
 
   <script>
     const canvas = document.getElementById('canvas');
@@ -109,7 +125,6 @@
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
-    // 画像アップロード
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -127,7 +142,6 @@
       reader.readAsDataURL(file);
     });
 
-    // フレーム選択
     frameSelect.addEventListener('change', () => {
       frameImage.src = frameSelect.value;
     });
@@ -135,7 +149,6 @@
     frameImage.onload = drawCanvas;
     frameImage.src = frameSelect.value;
 
-    // ホイール拡大
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.05 : -0.05;
@@ -143,7 +156,6 @@
       drawCanvas();
     });
 
-    // ドラッグ移動（マウス）
     canvas.addEventListener('mousedown', (e) => {
       const rect = canvas.getBoundingClientRect();
       isDragging = true;
@@ -167,7 +179,6 @@
     canvas.addEventListener('mouseup', () => isDragging = false);
     canvas.addEventListener('mouseleave', () => isDragging = false);
 
-    // タッチ操作
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         const rect = canvas.getBoundingClientRect();
