@@ -2,24 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>画像フレーム合成ツール</title>
+  <title>画像フレーム合成ツール（300dpi）</title>
   <style>
     body {
       font-family: 'Georgia', serif;
       background: #f9f9f9;
-      margin: 0;
       padding: 40px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
       text-align: center;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 30px;
     }
 
     .controls {
@@ -27,11 +16,7 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    select, input[type="file"], a {
-      font-size: 16px;
+      margin-bottom: 20px;
     }
 
     canvas {
@@ -46,6 +31,7 @@
     a {
       color: #0044cc;
       text-decoration: none;
+      font-size: 16px;
     }
 
     a:hover {
@@ -54,24 +40,23 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>画像にフレームを合成しよう</h1>
+  <h1>63×88mm（300dpi）でダウンロードできるカード画像</h1>
 
-    <div class="controls">
-      <label for="frameSelect">フレームを選択：</label>
-      <select id="frameSelect">
-        <option value="frame_jp.png">日本語フレーム</option>
-        <option value="frame_en.png">ENGLISHフレーム</option>
-      </select>
+  <div class="controls">
+    <label for="frameSelect">フレームを選択：</label>
+    <select id="frameSelect">
+      <option value="frame_jp.png">日本語フレーム</option>
+      <option value="frame_en.png">ENGLISHフレーム</option>
+    </select>
 
-      <input type="file" id="upload" accept="image/*">
-    </div>
+    <input type="file" id="upload" accept="image/*">
+  </div>
 
-    <canvas id="canvas"></canvas>
+  <!-- canvasサイズ = 63×88mm @300dpi = 744×1039px -->
+  <canvas id="canvas" width="744" height="1039"></canvas>
 
-    <div>
-      <a id="download" href="#" download="framed.png">画像をダウンロード</a>
-    </div>
+  <div>
+    <a id="download" href="#" download="card_300dpi.png">画像をダウンロード</a>
   </div>
 
   <script>
@@ -85,14 +70,9 @@
     const frameImage = new Image();
 
     const drawCanvas = () => {
-      if (!frameImage.complete) return;
-
-      // フレーム画像に合わせてcanvasサイズ変更
-      canvas.width = frameImage.width;
-      canvas.height = frameImage.height;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // 背景画像を比率維持して中央に表示
       if (bgImage && bgImage.complete) {
         const imgW = bgImage.width;
         const imgH = bgImage.height;
@@ -112,20 +92,26 @@
 
         const offsetX = (canvasW - drawW) / 2;
         const offsetY = (canvasH - drawH) / 2;
-
         ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
       }
 
-      ctx.drawImage(frameImage, 0, 0);
+      // 枠画像をピッタリ重ねる（枠も744×1039pxに合わせておくこと！）
+      if (frameImage && frameImage.complete) {
+        ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+      }
+
+      // ダウンロードリンク更新
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
+    // フレーム選択
     frameSelect.addEventListener('change', () => {
       frameImage.src = frameSelect.value;
     });
 
     frameImage.onload = drawCanvas;
 
+    // 画像アップロード処理
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -139,7 +125,7 @@
       reader.readAsDataURL(file);
     });
 
-    // 初期フレーム読み込み
+    // 初期フレーム
     frameImage.src = frameSelect.value;
   </script>
 </body>
