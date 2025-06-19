@@ -6,43 +6,61 @@
   <style>
     body {
       font-family: 'Georgia', serif;
-      background: #f9f9f9;
-      text-align: center;
+      background: #f4f4f4;
+      margin: 0;
       padding: 40px;
+      text-align: center;
     }
+
     h1 {
       font-size: 24px;
-      margin-bottom: 10px;
+      margin-bottom: 30px;
     }
-    label, select, input, a {
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    select, input[type="file"], a {
       font-size: 16px;
-      margin: 10px 0;
     }
+
     canvas {
-      border: 1px solid #ccc;
-      margin-top: 20px;
+      border: 1px solid #aaa;
       background: #fff;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    a {
+      color: #0044cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <h1>画像にフレームを合成しよう</h1>
 
-  <!-- フレーム選択 -->
-  <label for="frameSelect">フレームを選択：</label>
-  <select id="frameSelect">
-    <option value="frame_jp.png">日本語フレーム</option>
-    <option value="frame_en.png">ENGLISHフレーム</option>
-  </select>
+  <div class="controls">
+    <label for="frameSelect">フレームを選択：</label>
+    <select id="frameSelect">
+      <option value="frame_jp.png">日本語</option>
+      <option value="frame_en.png">ENGLISH</option>
+    </select>
 
-  <!-- 画像アップロード -->
-  <input type="file" id="upload" accept="image/*">
+    <input type="file" id="upload" accept="image/*">
+  </div>
 
-  <!-- キャンバス -->
   <canvas id="canvas" width="600" height="400"></canvas>
 
-  <!-- ダウンロードリンク -->
   <div>
     <a id="download" href="#" download="framed.png">画像をダウンロード</a>
   </div>
