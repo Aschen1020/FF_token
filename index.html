@@ -9,6 +9,11 @@
       background: #f4f4f4;
       margin: 0;
       padding: 40px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
       text-align: center;
     }
 
@@ -47,22 +52,24 @@
   </style>
 </head>
 <body>
-  <h1>画像にフレームを合成しよう</h1>
+  <div class="container">
+    <h1>画像にフレームを合成しよう</h1>
 
-  <div class="controls">
-    <label for="frameSelect">フレームを選択：</label>
-    <select id="frameSelect">
-      <option value="frame_jp.png">日本語</option>
-      <option value="frame_en.png">ENGLISH</option>
-    </select>
+    <div class="controls">
+      <label for="frameSelect">フレームを選択：</label>
+      <select id="frameSelect">
+        <option value="frame_jp.png">日本語フレーム</option>
+        <option value="frame_en.png">ENGLISHフレーム</option>
+      </select>
 
-    <input type="file" id="upload" accept="image/*">
-  </div>
+      <input type="file" id="upload" accept="image/*">
+    </div>
 
-  <canvas id="canvas" width="600" height="400"></canvas>
+    <canvas id="canvas" width="600" height="400"></canvas>
 
-  <div>
-    <a id="download" href="#" download="framed.png">画像をダウンロード</a>
+    <div>
+      <a id="download" href="#" download="framed.png">画像をダウンロード</a>
+    </div>
   </div>
 
   <script>
