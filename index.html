@@ -6,13 +6,13 @@
   <style>
     body {
       font-family: 'Georgia', serif;
-      background: #f4f4f4;
+      background: #f9f9f9;
       margin: 0;
       padding: 40px;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       text-align: center;
     }
@@ -39,6 +39,8 @@
       background: #fff;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       margin-bottom: 20px;
+      max-width: 100%;
+      height: auto;
     }
 
     a {
@@ -65,7 +67,7 @@
       <input type="file" id="upload" accept="image/*">
     </div>
 
-    <canvas id="canvas" width="600" height="400"></canvas>
+    <canvas id="canvas"></canvas>
 
     <div>
       <a id="download" href="#" download="framed.png">画像をダウンロード</a>
@@ -83,9 +85,15 @@
     const frameImage = new Image();
 
     const drawCanvas = () => {
+      if (!frameImage.complete) return;
+
+      // フレーム画像に合わせてcanvasサイズ変更
+      canvas.width = frameImage.width;
+      canvas.height = frameImage.height;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (bgImage) {
+      if (bgImage && bgImage.complete) {
         const imgW = bgImage.width;
         const imgH = bgImage.height;
         const canvasW = canvas.width;
@@ -108,17 +116,15 @@
         ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
       }
 
-      if (frameImage.complete) {
-        ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
-      }
-
+      ctx.drawImage(frameImage, 0, 0);
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
     frameSelect.addEventListener('change', () => {
       frameImage.src = frameSelect.value;
-      frameImage.onload = drawCanvas;
     });
+
+    frameImage.onload = drawCanvas;
 
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -133,8 +139,8 @@
       reader.readAsDataURL(file);
     });
 
+    // 初期フレーム読み込み
     frameImage.src = frameSelect.value;
-    frameImage.onload = drawCanvas;
   </script>
 </body>
 </html>
