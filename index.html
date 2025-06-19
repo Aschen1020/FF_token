@@ -5,19 +5,24 @@
   <title>画像フレーム合成ツール</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Georgia', serif;
+      background: #f9f9f9;
       text-align: center;
-      background: #f4f4f4;
-      padding: 2em;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    label, select, input, a {
+      font-size: 16px;
+      margin: 10px 0;
     }
     canvas {
       border: 1px solid #ccc;
-      margin-top: 1em;
-      cursor: pointer;
-    }
-    input, select, a {
-      margin-top: 1em;
-      display: block;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
   </style>
 </head>
@@ -25,11 +30,10 @@
   <h1>画像にフレームを合成しよう</h1>
 
   <!-- フレーム選択 -->
-  <label>フレームを選択：</label>
+  <label for="frameSelect">フレームを選択：</label>
   <select id="frameSelect">
-    <option value="frame1.png">フレーム1</option>
-    <option value="frame2.png">フレーム2</option>
-    <option value="frame3.png">フレーム3</option>
+    <option value="frame_jp.png">日本語フレーム</option>
+    <option value="frame_en.png">ENGLISHフレーム</option>
   </select>
 
   <!-- 画像アップロード -->
@@ -39,7 +43,9 @@
   <canvas id="canvas" width="600" height="400"></canvas>
 
   <!-- ダウンロードリンク -->
-  <a id="download" href="#" download="framed.png">画像をダウンロード</a>
+  <div>
+    <a id="download" href="#" download="framed.png">画像をダウンロード</a>
+  </div>
 
   <script>
     const canvas = document.getElementById('canvas');
@@ -102,7 +108,6 @@
       reader.readAsDataURL(file);
     });
 
-    // 初期フレーム読み込み
     frameImage.src = frameSelect.value;
     frameImage.onload = drawCanvas;
   </script>
