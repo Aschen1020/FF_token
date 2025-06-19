@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>画像フレーム合成ツール（300dpi）</title>
+  <title>画像フレーム合成ツール（拡大対応）</title>
   <style>
     body {
       font-family: 'Georgia', serif;
@@ -26,6 +26,7 @@
       margin-bottom: 20px;
       max-width: 100%;
       height: auto;
+      touch-action: none;
     }
 
     a {
@@ -40,7 +41,7 @@
   </style>
 </head>
 <body>
-  <h1>63×88mm（300dpi）でダウンロードできるカード画像</h1>
+  <h1>63×88mm（300dpi）画像にフレームを合成</h1>
 
   <div class="controls">
     <label for="frameSelect">フレームを選択：</label>
@@ -52,7 +53,7 @@
     <input type="file" id="upload" accept="image/*">
   </div>
 
-  <!-- canvasサイズ = 63×88mm @300dpi = 744×1039px -->
+  <!-- 63×88mm @300dpi = 744×1039px -->
   <canvas id="canvas" width="744" height="1039"></canvas>
 
   <div>
@@ -69,10 +70,16 @@
     let bgImage = null;
     const frameImage = new Image();
 
+    // 拡大縮小関連
+    let scale = 1.0;
+    const minScale = 0.3;
+    const maxScale = 3.0;
+    let lastDist = null;
+
     const drawCanvas = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 背景画像を比率維持して中央に表示
+      // 背景画像の描画（中央・比率維持・スケーリング）
       if (bgImage && bgImage.complete) {
         const imgW = bgImage.width;
         const imgH = bgImage.height;
@@ -90,28 +97,52 @@
           drawW = canvasH * imgRatio;
         }
 
+        drawW *= scale;
+        drawH *= scale;
+
         const offsetX = (canvasW - drawW) / 2;
         const offsetY = (canvasH - drawH) / 2;
         ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
       }
 
-      // 枠画像をピッタリ重ねる（枠も744×1039pxに合わせておくこと！）
+      // フレーム画像（そのまま上に重ねる）
       if (frameImage && frameImage.complete) {
         ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
       }
 
-      // ダウンロードリンク更新
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
-    // フレーム選択
-    frameSelect.addEventListener('change', () => {
-      frameImage.src = frameSelect.value;
+    // マウスホイールで拡大縮小（PC対応）
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.05 : -0.05;
+      scale = Math.min(maxScale, Math.max(minScale, scale + delta));
+      drawCanvas();
     });
 
-    frameImage.onload = drawCanvas;
+    // ピンチイン・ピンチアウト対応（スマホ）
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
-    // 画像アップロード処理
+        if (lastDist !== null) {
+          const delta = (dist - lastDist) * 0.003;
+          scale = Math.min(maxScale, Math.max(minScale, scale + delta));
+          drawCanvas();
+        }
+        lastDist = dist;
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      lastDist = null;
+    });
+
+    // 背景画像アップロード処理
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -119,13 +150,21 @@
       const reader = new FileReader();
       reader.onload = (evt) => {
         bgImage = new Image();
-        bgImage.onload = drawCanvas;
+        bgImage.onload = () => {
+          scale = 1.0;
+          drawCanvas();
+        };
         bgImage.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    // 初期フレーム
+    // フレーム画像切替
+    frameSelect.addEventListener('change', () => {
+      frameImage.src = frameSelect.value;
+    });
+
+    frameImage.onload = drawCanvas;
     frameImage.src = frameSelect.value;
   </script>
 </body>
