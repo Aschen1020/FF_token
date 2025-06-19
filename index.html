@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>画像フレーム合成ツール</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    canvas { border: 1px solid #ccc; cursor: move; }
+    select, input, button { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>画像にフレームを合成しよう</h1>
+
+  <!-- 枠選択 -->
+  <label>フレームを選んでね：</label>
+  <select id="frameSelect">
+    <option value="frame1.png">Frame 1</option>
+    <option value="frame2.png">Frame 2</option>
+    <option value="frame3.png">Frame 3</option>
+  </select><br>
+
+  <!-- 画像アップロード -->
+  <input type="file" id="upload" accept="image/*"><br>
+
+  <!-- キャンバス -->
+  <canvas id="canvas" width="600" height="400"></canvas><br>
+
+  <!-- ダウンロードボタン -->
+  <a id="download" href="#" download="framed.png">画像をダウンロード</a>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const upload = document.getElementById('upload');
+    const downloadLink = document.getElementById('download');
+    const frameSelect = document.getElementById('frameSelect');
+
+    let bgImage = null;
+    let frameImage = new Image();
+    let bgX = 0, bgY = 0;
+    let isDragging = false, dragStartX = 0, dragStartY = 0;
+
+    const drawCanvas = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (bgImage) ctx.drawImage(bgImage, bgX, bgY, canvas.width, canvas.height);
+      if (frameImage.complete) ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+      downloadLink.href = canvas.toDataURL('image/png');
+    };
+
+    frameSelect.addEventListener('change', () => {
+      frameImage.src = frameSelect.value;
+      frameImage.onload = drawCanvas;
+    });
+
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        bgImage = new Image();
+        bgImage.onload = () => {
+          bgX = 0; bgY = 0;
+          drawCanvas();
+        };
+        bgImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Canvasドラッグ操作
+    canvas.addEventListener('mousedown', (e) => {
+      dragStartX = e.offsetX - bgX;
+      dragStartY = e.offsetY - bgY;
+      isDragging = true;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        bgX = e.offsetX - dragStartX;
+        bgY = e.offsetY - dragStartY;
+        drawCanvas();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mouseleave', () => isDragging = false);
+
+    // 初期フレーム読み込み
+    frameImage.src = frameSelect.value;
+    frameImage.onload = drawCanvas;
+  </script>
+</body>
+</html>
