@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>カード画像合成ツール（拡大・移動対応）</title>
+  <title>カード画像合成ツール（完全ドラッグ対応）</title>
   <style>
     body {
       font-family: 'Georgia', serif;
@@ -10,7 +10,6 @@
       padding: 40px;
       text-align: center;
     }
-
     .controls {
       display: flex;
       flex-direction: column;
@@ -18,7 +17,6 @@
       gap: 10px;
       margin-bottom: 20px;
     }
-
     canvas {
       border: 1px solid #aaa;
       background: #fff;
@@ -28,20 +26,15 @@
       height: auto;
       touch-action: none;
     }
-
     a {
       color: #0044cc;
       text-decoration: none;
       font-size: 16px;
     }
-
-    a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
-  <h1>63×88mm（300dpi）カード画像にフレームを合成</h1>
+  <h1>63×88mm（300dpi）カード画像にフレーム合成</h1>
 
   <div class="controls">
     <label for="frameSelect">フレームを選択：</label>
@@ -53,7 +46,6 @@
     <input type="file" id="upload" accept="image/*">
   </div>
 
-  <!-- 63×88mm @300dpi = 744×1039px -->
   <canvas id="canvas" width="744" height="1039"></canvas>
 
   <div>
@@ -63,17 +55,17 @@
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const frameSelect = document.getElementById('frameSelect');
     const upload = document.getElementById('upload');
     const downloadLink = document.getElementById('download');
-    const frameSelect = document.getElementById('frameSelect');
 
     let bgImage = null;
     const frameImage = new Image();
 
-    // 拡大縮小・移動用
     let scale = 1.0;
     const minScale = 0.3;
     const maxScale = 3.0;
+
     let offsetX = 0;
     let offsetY = 0;
     let isDragging = false;
@@ -117,11 +109,10 @@
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
-    // アップロード処理
+    // 画像アップロード
     upload.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (evt) => {
         bgImage = new Image();
@@ -144,7 +135,7 @@
     frameImage.onload = drawCanvas;
     frameImage.src = frameSelect.value;
 
-    // 拡大縮小（マウスホイール）
+    // ホイール拡大
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.05 : -0.05;
@@ -152,50 +143,51 @@
       drawCanvas();
     });
 
-    // ドラッグ（PC）
+    // ドラッグ移動（マウス）
     canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
       isDragging = true;
-      dragStartX = e.offsetX;
-      dragStartY = e.offsetY;
+      dragStartX = e.clientX - rect.left;
+      dragStartY = e.clientY - rect.top;
     });
 
     canvas.addEventListener('mousemove', (e) => {
       if (isDragging) {
-        offsetX += e.offsetX - dragStartX;
-        offsetY += e.offsetY - dragStartY;
-        dragStartX = e.offsetX;
-        dragStartY = e.offsetY;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        offsetX += x - dragStartX;
+        offsetY += y - dragStartY;
+        dragStartX = x;
+        dragStartY = y;
         drawCanvas();
       }
     });
 
-    canvas.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
+    canvas.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mouseleave', () => isDragging = false);
 
-    canvas.addEventListener('mouseleave', () => {
-      isDragging = false;
-    });
-
-    // スマホ用ピンチ・ドラッグ
+    // タッチ操作
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
-        dragStartX = e.touches[0].clientX;
-        dragStartY = e.touches[0].clientY;
+        const rect = canvas.getBoundingClientRect();
+        dragStartX = e.touches[0].clientX - rect.left;
+        dragStartY = e.touches[0].clientY - rect.top;
         isDragging = true;
       }
     });
 
     canvas.addEventListener('touchmove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+
       if (e.touches.length === 1 && isDragging) {
         e.preventDefault();
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - dragStartX;
-        const deltaY = touch.clientY - dragStartY;
-        offsetX += deltaX;
-        offsetY += deltaY;
-        dragStartX = touch.clientX;
-        dragStartY = touch.clientY;
+        const x = e.touches[0].clientX - rect.left;
+        const y = e.touches[0].clientY - rect.top;
+        offsetX += x - dragStartX;
+        offsetY += y - dragStartY;
+        dragStartX = x;
+        dragStartY = y;
         drawCanvas();
       }
 
