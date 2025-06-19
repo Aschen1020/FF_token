@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>画像フレーム合成ツール（拡大対応）</title>
+  <title>カード画像合成ツール（拡大・移動対応）</title>
   <style>
     body {
       font-family: 'Georgia', serif;
@@ -41,7 +41,7 @@
   </style>
 </head>
 <body>
-  <h1>63×88mm（300dpi）画像にフレームを合成</h1>
+  <h1>63×88mm（300dpi）カード画像にフレームを合成</h1>
 
   <div class="controls">
     <label for="frameSelect">フレームを選択：</label>
@@ -70,16 +70,20 @@
     let bgImage = null;
     const frameImage = new Image();
 
-    // 拡大縮小関連
+    // 拡大縮小・移動用
     let scale = 1.0;
     const minScale = 0.3;
     const maxScale = 3.0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
     let lastDist = null;
 
     const drawCanvas = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 背景画像の描画（中央・比率維持・スケーリング）
       if (bgImage && bgImage.complete) {
         const imgW = bgImage.width;
         const imgH = bgImage.height;
@@ -100,12 +104,12 @@
         drawW *= scale;
         drawH *= scale;
 
-        const offsetX = (canvasW - drawW) / 2;
-        const offsetY = (canvasH - drawH) / 2;
-        ctx.drawImage(bgImage, offsetX, offsetY, drawW, drawH);
+        const centerX = (canvasW - drawW) / 2;
+        const centerY = (canvasH - drawH) / 2;
+
+        ctx.drawImage(bgImage, centerX + offsetX, centerY + offsetY, drawW, drawH);
       }
 
-      // フレーム画像（そのまま上に重ねる）
       if (frameImage && frameImage.complete) {
         ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
       }
@@ -113,7 +117,34 @@
       downloadLink.href = canvas.toDataURL('image/png');
     };
 
-    // マウスホイールで拡大縮小（PC対応）
+    // アップロード処理
+    upload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        bgImage = new Image();
+        bgImage.onload = () => {
+          scale = 1.0;
+          offsetX = 0;
+          offsetY = 0;
+          drawCanvas();
+        };
+        bgImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // フレーム選択
+    frameSelect.addEventListener('change', () => {
+      frameImage.src = frameSelect.value;
+    });
+
+    frameImage.onload = drawCanvas;
+    frameImage.src = frameSelect.value;
+
+    // 拡大縮小（マウスホイール）
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.05 : -0.05;
@@ -121,14 +152,58 @@
       drawCanvas();
     });
 
-    // ピンチイン・ピンチアウト対応（スマホ）
+    // ドラッグ（PC）
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      dragStartX = e.offsetX;
+      dragStartY = e.offsetY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        offsetX += e.offsetX - dragStartX;
+        offsetY += e.offsetY - dragStartY;
+        dragStartX = e.offsetX;
+        dragStartY = e.offsetY;
+        drawCanvas();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isDragging = false;
+    });
+
+    // スマホ用ピンチ・ドラッグ
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        dragStartX = e.touches[0].clientX;
+        dragStartY = e.touches[0].clientY;
+        isDragging = true;
+      }
+    });
+
     canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && isDragging) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - dragStartX;
+        const deltaY = touch.clientY - dragStartY;
+        offsetX += deltaX;
+        offsetY += deltaY;
+        dragStartX = touch.clientX;
+        dragStartY = touch.clientY;
+        drawCanvas();
+      }
+
       if (e.touches.length === 2) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-
         if (lastDist !== null) {
           const delta = (dist - lastDist) * 0.003;
           scale = Math.min(maxScale, Math.max(minScale, scale + delta));
@@ -139,33 +214,9 @@
     }, { passive: false });
 
     canvas.addEventListener('touchend', () => {
+      isDragging = false;
       lastDist = null;
     });
-
-    // 背景画像アップロード処理
-    upload.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        bgImage = new Image();
-        bgImage.onload = () => {
-          scale = 1.0;
-          drawCanvas();
-        };
-        bgImage.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // フレーム画像切替
-    frameSelect.addEventListener('change', () => {
-      frameImage.src = frameSelect.value;
-    });
-
-    frameImage.onload = drawCanvas;
-    frameImage.src = frameSelect.value;
   </script>
 </body>
 </html>
