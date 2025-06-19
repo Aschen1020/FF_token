@@ -32,6 +32,15 @@
       font-size: 16px;
     }
   </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3PR74DP3S0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3PR74DP3S0');
+  </script>
 </head>
 <body>
   <h1>Magic: the Gathering　英雄トークン作成ツール</h1>
@@ -48,8 +57,8 @@
   <div class="controls">
     <label for="frameSelect">フレームを選択 / Select Frame:</label>
     <select id="frameSelect">
-      <option value="frame_jp.png">日本語</option>
-      <option value="frame_en.png">ENGLISH</option>
+      <option value="frame_jp.png">日本語フレーム</option>
+      <option value="frame_en.png">ENGLISHフレーム</option>
     </select>
 
     <input type="file" id="upload" accept="image/*">
